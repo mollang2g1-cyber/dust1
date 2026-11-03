@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!-- 문서 유형을 HTML5로 선언합니다 -->
+<html lang="ko">
+<!-- 한국어로 문서 언어를 설정합니다 -->
+<head>
+  <!-- 문자 인코딩을 UTF-8로 지정합니다 -->
+  <meta charset="UTF-8">
+  <!-- 모바일 환경에서도 화면이 깨지지 않도록 뷰포트를 설정합니다 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 브라우저 탭에 표시될 웹페이지 제목을 지정합니다 -->
+  <title>에어코리아 실시간 대기오염 정보 - 공기 신호등</title>
+  <!-- 깔끔한 가독성을 위해 Pretendard 웹폰트를 연결합니다 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+  <!-- 가로 막대그래프 렌더링을 위해 Chart.js 라이브러리를 CDN으로 불러옵니다 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- 외부 스타일시트인 style.css 파일을 연결합니다 -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<!-- 화면에 렌더링될 본문 영역을 시작합니다 -->
+<body>
+  <!-- 전체 콘텐츠를 감싸는 중앙 정렬용 컨테이너입니다 -->
+  <div class="container">
+    <!-- 웹앱의 상단 헤더 영역입니다 -->
+    <header class="header">
+      <!-- 메인 타이틀 제목입니다 -->
+      <h1>🚦 실시간 공기 신호등</h1>
+      <!-- 부가 설명 텍스트입니다 -->
+      <p class="subtitle">한국환경공단 에어코리아 시도별 미세먼지 실시간 신호등 및 분석</p>
+    </header>
+
+    <!-- 시도 선택 및 내 위치 감지 제어 영역입니다 -->
+    <section class="control-section">
+      <!-- 드롭다운과 내 위치 버튼을 감싸는 컨트롤 래퍼입니다 -->
+      <div class="control-wrapper">
+        <!-- 라벨과 드롭다운을 감싸는 박스입니다 -->
+        <div class="select-box">
+          <!-- 드롭다운에 대한 라벨 텍스트입니다 -->
+          <label for="sidoSelect">지역 선택</label>
+          <!-- 18개 시도를 선택할 수 있는 셀렉트 드롭다운입니다 -->
+          <select id="sidoSelect">
+            <!-- 전국 옵션입니다 -->
+            <option value="전국">전국</option>
+            <!-- 서울 옵션입니다 -->
+            <option value="서울">서울</option>
+            <!-- 부산 옵션입니다 -->
+            <option value="부산">부산</option>
+            <!-- 대구 옵션입니다 -->
+            <option value="대구">대구</option>
+            <!-- 인천 옵션입니다 -->
+            <option value="인천">인천</option>
+            <!-- 광주 옵션입니다 -->
+            <option value="광주">광주</option>
+            <!-- 대전 옵션입니다 -->
+            <option value="대전">대전</option>
+            <!-- 울산 옵션입니다 -->
+            <option value="울산">울산</option>
+            <!-- 세종 옵션입니다 -->
+            <option value="세종">세종</option>
+            <!-- 경기 옵션입니다 -->
+            <option value="경기">경기</option>
+            <!-- 강원 옵션입니다 -->
+            <option value="강원">강원</option>
+            <!-- 충북 옵션입니다 -->
+            <option value="충북">충북</option>
+            <!-- 충남 옵션입니다 -->
+            <option value="충남">충남</option>
+            <!-- 전북 옵션입니다 -->
+            <option value="전북">전북</option>
+            <!-- 전남 옵션입니다 -->
+            <option value="전남">전남</option>
+            <!-- 경북 옵션입니다 -->
+            <option value="경북">경북</option>
+            <!-- 경남 옵션입니다 -->
+            <option value="경남">경남</option>
+            <!-- 제주 옵션입니다 -->
+            <option value="제주">제주</option>
+          </select>
+        </div>
+        <!-- 현재 사용자 위치를 자동으로 감지하는 버튼입니다 -->
+        <button id="locationBtn" class="location-btn" type="button" title="내 위치로 다시 찾기">
+          <span class="loc-icon">📍</span> 내 위치 찾기
+        </button>
+      </div>
+      <!-- 위치 감지 안내 토스트 메시지 영역입니다 -->
+      <div id="locationNotice" class="location-notice" style="display: none;"></div>
+    </section>
+
+    <!-- 공기 신호등 대표 상태 영역 (이모지 + 상태명 + 평균수치 + 안내문구) -->
+    <section class="summary-section">
+      <!-- 공기 신호등 대표 카드 박스입니다 -->
+      <div id="trafficCard" class="traffic-card traffic-grade-gray">
+        <!-- 현재 선택된 시도명 라벨입니다 -->
+        <div class="traffic-region-label">
+          <span id="currentRegionName">지역</span> 대기질 대표 신호
+        </div>
+
+        <!-- 이모지와 상태 텍스트를 아주 크게 보여주는 영역입니다 -->
+        <div class="traffic-hero">
+          <!-- 등급별 이모지 (🔵🟢🟠🔴)가 표시될 요소입니다 -->
+          <span id="trafficEmoji" class="traffic-emoji">⚪</span>
+          <!-- 등급 상태 명칭(좋음/보통/나쁨/매우나쁨)이 표시될 요소입니다 -->
+          <span id="trafficStatusText" class="traffic-status-text">불러오는 중...</span>
+        </div>
+
+        <!-- 평균 미세먼지 수치를 보여주는 영역입니다 -->
+        <div class="traffic-average-row">
+          <!-- 평균 미세먼지 라벨입니다 -->
+          <span class="avg-label">평균 미세먼지</span>
+          <!-- 평균 수치 숫자 텍스트입니다 -->
+          <span id="averageValue" class="avg-number">-</span>
+          <!-- 측정 단위 텍스트입니다 -->
+          <span class="avg-unit">㎍/㎥</span>
+        </div>
+
+        <!-- 나쁨 이상이면 '외출 시 마스크를 챙기세요'를 표시하는 한 줄 안내 문구입니다 -->
+        <div id="trafficAdvice" class="traffic-advice">
+          데이터를 불러오는 중입니다...
+        </div>
+      </div>
+    </section>
+
+    <!-- 측정소별 미세먼지 수치 상위 10곳 가로 막대그래프 섹션입니다 -->
+    <section id="chartSection" class="chart-section" style="display: none;">
+      <!-- 그래프를 감싸는 화이트 카드 컨테이너입니다 -->
+      <div class="chart-card">
+        <!-- 그래프 상단 제목 및 설명 헤더입니다 -->
+        <div class="chart-header">
+          <!-- 그래프 메인 제목입니다 -->
+          <h2>📊 미세먼지 수치 TOP 10 측정소</h2>
+          <!-- 수치가 높은 순서대로 상위 10곳을 안내하는 서브 텍스트입니다 -->
+          <span class="chart-subtitle">수치가 높은 순으로 최대 10개 측정소 비교</span>
+        </div>
+        <!-- Chart.js 캔버스를 반응형으로 감싸는 영역입니다 -->
+        <div class="chart-wrapper">
+          <!-- Chart.js가 렌더링될 캔버스 요소입니다 -->
+          <canvas id="dustChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- 데이터를 불러오는 동안 표시되는 안내 영역입니다 -->
+    <div id="loading" class="loading-state">
+      <!-- 로딩 회전 애니메이션 아이콘입니다 -->
+      <div class="spinner"></div>
+      <!-- '불러오는 중...' 안내 문구입니다 -->
+      <p class="loading-text">불러오는 중...</p>
+    </div>
+
+    <!-- 에러 발생 시 안내 메시지를 보여주는 영역입니다 -->
+    <div id="errorMessage" class="error-state" style="display: none;">
+      <!-- 에러 안내 문구입니다 -->
+      <p id="errorText">데이터를 불러오는 중 오류가 발생했습니다.</p>
+    </div>
+
+    <!-- 측정소별 상세 카드가 동적으로 나열되는 그리드 영역입니다 -->
+    <main id="cardContainer" class="card-grid">
+      <!-- 자바스크립트로 측정소 카드들이 여기에 삽입됩니다 -->
+    </main>
+  </div>
+
+  <!-- 비즈니스 로직 및 API 호출을 담당하는 script.js 파일을 연결합니다 -->
+  <script src="script.js"></script>
+</body>
+</html>

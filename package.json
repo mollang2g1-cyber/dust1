@@ -1,0 +1,14 @@
+{
+  "name": "airkorea-dust-app",
+  "version": "1.0.0",
+  "description": "한국환경공단 에어코리아 실시간 대기오염정보 웹앱",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["airkorea", "dust", "weather"],
+  "author": "",
+  "license": "ISC"
+}
+
